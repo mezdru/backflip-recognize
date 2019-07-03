@@ -7,7 +7,7 @@ var User = require('../../models/user');
  * @description Authorize access to organisation
  */
 router.use((req, res, next) => {
-	req.organisationId = req.body.orgId || (req.query && req.query.organisation ? req.query.organisation : null);
+	req.organisationId = (req.query && req.query.organisation ? req.query.organisation : null);
 	next();
 });
 
@@ -39,7 +39,6 @@ router.use((req, res, next) => {
 
 router.use(function (req, res, next) {
 	Organisation.findOne({ '_id': req.organisationId })
-		.populate('featuredWingsFamily', '_id tag type name name_translated picture intro')
 		.then(organisation => {
 			if (!organisation && !req.user.superadmin) return res.status(404).json({ message: 'Organisation not found' });
 
@@ -51,7 +50,6 @@ router.use(function (req, res, next) {
 			req.organisation = organisation;
 			return next();
 		}).catch(err => {
-			console.log(err);
 			return res.status(500).json({ message: 'Internal error', errors: [err] });
 		});
 });

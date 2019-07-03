@@ -22,12 +22,12 @@ exports.getSingleClap = async (req, res, next) => {
           message: 'Clap found',
           status: 200,
           data: clap,
-          owner: clap.owner
+          organisation: clap.organisation
         };
       }
       return next();
     }).catch(err => {
-      if (err.name = 'CastError') {
+      if (err.name === 'CastError') {
         req.backflipRecognize = { message: 'Clap id is not valid.', status: 422 };
         return next();
       }
@@ -49,20 +49,10 @@ exports.createSingleClap = async (req, res, next) => {
     req.backflipRecognize = {message: 'Clap saved with success', status: 200, data: clapSaved};
     return next();
   }).catch(err => {
+    if(err.name === 'ValidationError') {
+      req.backflipRecognize = {message: err.message, status: 422};
+      return next();
+    }
     return next(err);
   });
-}
-
-exports.updateSingleClap = async (req, res, next) => {
-  if(!req.body.clap) {
-    req.backflipRecognize = {message: 'Missing body parameter: clap', status: 422};
-    return next();
-  }
-
-  req.backflipRecognize = {status: 400};
-  return next();
-}
-
-exports.deleteSingleClap = async (req, res, next) => {
-  return next();
 }
