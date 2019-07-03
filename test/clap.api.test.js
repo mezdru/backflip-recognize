@@ -118,7 +118,7 @@ describe('/GET clap', () => {
 
   it('it should GET clap (superadmin)', (done) => {
     chai.request(server)
-      .get('/api/claps/5d1b7442fd87e6005c0021b8')
+      .get('/api/claps/5d1cbc879ce38b4aa0598925')
       .set('Authorization', 'Bearer ' + access_token_superadmin)
       .end((err, res) => {
         res.should.have.status(200);
@@ -128,7 +128,7 @@ describe('/GET clap', () => {
 
   it('it should GET clap (admin)', (done) => {
     chai.request(server)
-      .get('/api/claps/')
+      .get('/api/claps/5d1cbc879ce38b4aa0598925')
       .set('Authorization', 'Bearer ' + access_token_admin)
       .end((err, res) => {
         res.should.have.status(200);
@@ -139,10 +139,10 @@ describe('/GET clap', () => {
 
   it('it should GET clap (user)', (done) => {
     chai.request(server)
-      .get('/api/claps/')
+      .get('/api/claps/5d1cbc879ce38b4aa0598925')
       .set('Authorization', 'Bearer ' + access_token)
       .end((err, res) => {
-        res.should.have.status(403);
+        res.should.have.status(200);
         done();
       });
   });
@@ -151,26 +151,14 @@ describe('/GET clap', () => {
 
 describe('POST clap', () => {
 
-  it('it should not POST clap (duplicate resource)', (done) => {
-    chai.request(server)
-      .post('/api/claps')
-      .send({
-      })
-      .set('Authorization', 'Bearer ' + access_token_superadmin)
-      .end((err, res) => {
-        res.should.have.status(409);
-        done();
-      });
-  });
-
-  it('it should POST clap (Superadmin)', (done) => {
+  it('it should POST clap (superadmin)', (done) => {
     chai.request(server)
       .post('/api/claps')
       .send({
         clap: {
           organisation: testOrgId,
           giver: "5d134105840ec525c88d6d0e",
-          receiver: "5d11f3cb4a391408f428e824",
+          recipient: "5d11f3cb4a391408f428e824",
           hashtag: "5d11f50a4a391408f428e827",
           given: 23
         }
@@ -182,14 +170,82 @@ describe('POST clap', () => {
       });
   });
 
-  it('it should POST clap (Admin)', (done) => {
+  it('it should not POST clap (bad clap object)', (done) => {
+    chai.request(server)
+      .post('/api/claps')
+      .send({
+        clap: {
+          organisation: testOrgId,
+          giver: "5d134105840ec525c88d6d0e",
+          hashtag: "5d11f50a4a391408f428e827",
+          given: 23
+        }
+      })
+      .set('Authorization', 'Bearer ' + access_token_superadmin)
+      .end((err, res) => {
+        res.should.have.status(422);
+        done();
+      });
+  });
+
+  it('it should not POST clap (not body param : clap)', (done) => {
+    chai.request(server)
+      .post('/api/claps')
+      .send({
+        claping: {
+          organisation: testOrgId,
+          giver: "5d134105840ec525c88d6d0e",
+          recipient: "5d11f3cb4a391408f428e824",
+          hashtag: "5d11f50a4a391408f428e827",
+          given: 23
+        }
+      })
+      .set('Authorization', 'Bearer ' + access_token_superadmin)
+      .end((err, res) => {
+        res.should.have.status(422);
+        done();
+      });
+  });
+
+  it('it should not POST clap (Admin - no clap object)', (done) => {
     chai.request(server)
       .post('/api/claps')
       .send({
       })
       .set('Authorization', 'Bearer ' + access_token_admin)
       .end((err, res) => {
-        res.should.have.status(200);
+        res.should.have.status(422);
+        done();
+      });
+  });
+
+  it('it should not POST clap (User - no clap object)', (done) => {
+    chai.request(server)
+      .post('/api/claps')
+      .send({
+      })
+      .set('Authorization', 'Bearer ' + access_token)
+      .end((err, res) => {
+        res.should.have.status(422);
+        done();
+      });
+  });
+
+  it('it should not POST clap (Not the record of the User (giver))', (done) => {
+    chai.request(server)
+      .post('/api/claps')
+      .send({
+        clap: {
+          organisation: testOrgId,
+          giver: "5d134105840ec525c88d6d0e",
+          recipient: "5d11f3cb4a391408f428e824",
+          hashtag: "5d11f50a4a391408f428e827",
+          given: 23
+        }
+      })
+      .set('Authorization', 'Bearer ' + access_token)
+      .end((err, res) => {
+        res.should.have.status(422);
         done();
       });
   });
@@ -198,6 +254,13 @@ describe('POST clap', () => {
     chai.request(server)
       .post('/api/claps')
       .send({
+        clap: {
+          organisation: testOrgId,
+          giver: "5d14a845708dd821d0565b95",
+          recipient: "5d11f3cb4a391408f428e824",
+          hashtag: "5d11f50a4a391408f428e827",
+          given: 23
+        }
       })
       .set('Authorization', 'Bearer ' + access_token)
       .end((err, res) => {
@@ -206,10 +269,17 @@ describe('POST clap', () => {
       });
   });
 
-  it('it should not POST clap (Admin not allowed)', (done) => {
+  it('it should not POST clap (Admin - bad organisation)', (done) => {
     chai.request(server)
       .post('/api/claps')
       .send({
+        clap: {
+          organisation: otherTestOrgId,
+          giver: "5d134105840ec525c88d6d0e",
+          recipient: "5d11f3cb4a391408f428e824",
+          hashtag: "5d11f50a4a391408f428e827",
+          given: 23
+        }
       })
       .set('Authorization', 'Bearer ' + access_token_admin)
       .end((err, res) => {
@@ -217,20 +287,4 @@ describe('POST clap', () => {
         done();
       });
   });
-});
-
-describe('PUT clap', () => {
-
-  it('it should PUT clap (superadmin)', (done) => {
-    chai.request(server)
-      .put('/api/claps/')
-      .send({
-      })
-      .set('Authorization', 'Bearer ' + access_token_superadmin)
-      .end((err, res) => {
-        res.should.have.status(200);
-        done();
-      });
-  });
-  
 });

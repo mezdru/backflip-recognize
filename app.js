@@ -15,7 +15,6 @@ app.use(function(req, res, next) {
   //intercepts OPTIONS method
   if ('OPTIONS' === req.method) {
     //respond with 200
-    console.log('EH')
     res.sendStatus(200);
   } else {
   //move on
@@ -27,6 +26,7 @@ app.use(function(req, res, next) {
 mongoose.plugin(schema => { schema.options.usePushEach = true; });
 mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true});
 mongoose.set('useCreateIndex', true);
+mongoose.set('useFindAndModify', false);
 var db = mongoose.connection;
 
 db.on('error', console.error.bind(console));
