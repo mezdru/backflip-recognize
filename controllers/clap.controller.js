@@ -1,4 +1,5 @@
 var Clap = require('../models/clap');
+var Record = require('../models/record');
 
 exports.getClaps = async (req, res, next) => {
   Clap.find({ ...req.query })
@@ -13,7 +14,7 @@ exports.getClaps = async (req, res, next) => {
 }
 
 exports.getSingleClap = async (req, res, next) => {
-  Clap.findOne({_id: req.params.id})
+  Clap.findOne({ _id: req.params.id })
     .then(clap => {
       if (!clap) {
         req.backflipRecognize = { message: 'Clap not found', status: 404 };
@@ -36,23 +37,52 @@ exports.getSingleClap = async (req, res, next) => {
 }
 
 exports.createSingleClap = async (req, res, next) => {
-  if(!req.body.clap) {
-    req.backflipRecognize = {message: 'Missing body parameter: clap', status: 422};
+  if (!req.body.clap) {
+    req.backflipRecognize = { message: 'Missing body parameter: clap', status: 422 };
     return next();
   }
 
   let clap = new Clap(req.body.clap);
-  clap.owner =  req.user._id;
+  clap.owner = req.user._id;
 
   clap.save()
-  .then(clapSaved => {
-    req.backflipRecognize = {message: 'Clap saved with success', status: 200, data: clapSaved};
-    return next();
-  }).catch(err => {
-    if(err.name === 'ValidationError') {
-      req.backflipRecognize = {message: err.message, status: 422};
+    .then(clapSaved => {
+      req.backflipRecognize = { message: 'Clap saved with success', status: 200, data: clapSaved };
       return next();
-    }
-    return next(err);
-  });
+    }).catch(err => {
+      if (err.name === 'ValidationError') {
+        req.backflipRecognize = { message: err.message, status: 422 };
+        return next();
+      }
+      return next(err);
+    });
+}
+
+exports.getRecordHashtagsClapsSum = async (req, res, next) => {
+  let record = await Record.findOne({ _id: req.params.id }).lean();
+
+  if(!record) {
+    req.backflipRecognize = {status: 404, message: 'Record not found.'};
+    return next();
+  }
+
+  Clap.aggregate(
+    [
+      {
+        $match: {
+          hashtag: { $in: record.hashtags }
+        }
+      },
+      {
+        $group: {
+          _id: "$hashtag",
+          claps: { $sum: "$given"},
+          clapObjectCount: { $sum: 1 }
+        }
+      }
+    ]
+  ).then(clapsCount => {
+    req.backflipRecognize = {status: 200, message: 'Claps count fetch with success.', data: clapsCount};
+    return next();
+  }).catch(err => {return next(err)});
 }
