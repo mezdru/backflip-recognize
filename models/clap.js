@@ -4,7 +4,7 @@ var ClapSchema = mongoose.Schema({
   organisation: {type: mongoose.Schema.Types.ObjectId, ref: 'Organisation', required: true},
   giver: {type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true},
   recipient: {type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true, index: true},
-  hashtag: {type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true},
+  hashtag: {type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true, index: true},
   given: {type: Number, default: 0},
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
