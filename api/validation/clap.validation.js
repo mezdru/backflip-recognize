@@ -8,6 +8,8 @@ router.use(async (req, res, next) => {
   var giver = await Record.findOne({_id: req.body.clap.giver, organisation: req.organisation._id}).lean();
   var recipient = await Record.findOne({_id: req.body.clap.recipient, organisation: req.organisation._id}).lean();
 
+  if(giver._id.equals(recipient._id)) return res.status(422).json({message: "You can't clap yourself!"});
+
   if( giver && 
       recipient && 
       recipient.hashtags.find(hashtag => hashtag.equals(req.body.clap.hashtag) && 
