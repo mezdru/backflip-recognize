@@ -44,9 +44,12 @@ exports.createSingleClap = async (req, res, next) => {
 
   let clap = new Clap(req.body.clap);
   clap.owner = req.user._id;
+  let dateA = new Date();
 
   clap.save()
     .then(clapSaved => {
+      let dateB = new Date();
+      console.log( '[CLAP WRITE] - time : ' + (dateB.getTime()-dateA.getTime()) + ' ms' );
       req.backflipRecognize = { message: 'Clap saved with success', status: 200, data: clapSaved };
       return next();
     }).catch(err => {
@@ -65,12 +68,15 @@ exports.getRecordHashtagsClapsSum = async (req, res, next) => {
     req.backflipRecognize = {status: 404, message: 'Record not found.'};
     return next();
   }
+  let dateA = new Date();
 
   Clap.aggregate(
     [
       {
         $match: {
-          hashtag: { $in: record.hashtags }
+          hashtag: { $in: record.hashtags },
+          recipient: record._id,
+          organisation: record.organisation
         }
       },
       {
@@ -82,7 +88,9 @@ exports.getRecordHashtagsClapsSum = async (req, res, next) => {
       }
     ]
   ).then(clapsCount => {
-    req.backflipRecognize = {status: 200, message: 'Claps count fetch with success.', data: clapsCount};
+    let dateB = new Date();
+    console.log( '[CLAP AGGREGATION] - time : ' + (dateB.getTime()-dateA.getTime()) + ' ms' );
+    req.backflipRecognize = {status: 200, message: 'Claps count fetch with success.', data: clapsCount, organisation: record.organisation};
     return next();
   }).catch(err => {return next(err)});
 }
