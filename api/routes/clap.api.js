@@ -21,9 +21,8 @@ router.use((req, res, next) => {
 router.get(
   '/record/:id/count',
   passport.authenticate('bearer', {session: false}),
-  AuthorizationOrganisation,
   ClapController.getRecordHashtagsClapsSum,
-  ResponseAuthorization.resForAllUser
+  ResponseAuthorization.resForUserGrantedOnly
 )
 
 router.get(
