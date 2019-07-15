@@ -8,6 +8,7 @@ var ClapSchema = mongoose.Schema({
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true, index: true },
   hashtag: { type: mongoose.Schema.Types.ObjectId, ref: 'Record', required: true, index: true },
   given: { type: Number, default: 0 },
+  message: { type: String },
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
@@ -15,6 +16,7 @@ var ClapSchema = mongoose.Schema({
 
 // One of the properties chosen here should has index: true
 ClapSchema.index({ 'recipient': 1, 'giver': 1, 'hashtag': 1 }, { unique: false });
+ClapSchema.index({ 'recipient': 1, 'organisation': 1, 'hashtag': 1 }, { unique: false });
 
 ClapSchema.methods.algoliaSync = function() {
   Clap.aggregate(
