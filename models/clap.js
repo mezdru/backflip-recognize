@@ -18,7 +18,7 @@ var ClapSchema = mongoose.Schema({
 ClapSchema.index({ 'recipient': 1, 'giver': 1, 'hashtag': 1 }, { unique: false });
 ClapSchema.index({ 'recipient': 1, 'organisation': 1, 'hashtag': 1 }, { unique: false });
 
-ClapSchema.methods.algoliaSync = function() {
+ClapSchema.methods.algoliaSync = function () {
   Clap.aggregate(
     [
       {
@@ -41,13 +41,18 @@ ClapSchema.methods.algoliaSync = function() {
         index.getObject(this.recipient, ['hashtags'], (err, algoliaObject) => {
           if (err) throw err;
           var indexOfWing = algoliaObject.hashtags.findIndex(hashtag => JSON.stringify(hashtag._id) === JSON.stringify(this.hashtag));
-          algoliaObject.hashtags[indexOfWing].claps = currentClap.claps;
 
-          // push update
-          index.partialUpdateObject(algoliaObject, (err, algoliaObjectUpdated) => {
-            if (err) throw err;
-            console.log(`Sync ${algoliaObjectUpdated.objectID} (Clap) with Algolia`);
-          });
+          if ((indexOfWing !== -1) && algoliaObject.hashtags[indexOfWing]) {
+            algoliaObject.hashtags[indexOfWing].claps = currentClap.claps;
+
+            // push update
+            index.partialUpdateObject(algoliaObject, (err, algoliaObjectUpdated) => {
+              if (err) throw err;
+              console.log(`Sync ${algoliaObjectUpdated.objectID} (Clap) with Algolia`);
+            });
+          } else {
+            console.log("Algolia Sync: Can't find hashtag links to the Clap counter.");
+          }
 
         });
       } catch (err) {
