@@ -1,5 +1,6 @@
 var Clap = require('../models/clap');
 var Record = require('../models/record');
+var Organisation = require('../models/organisation');
 
 exports.getClaps = async (req, res, next) => {
   Clap.find({ ...req.query })
@@ -109,8 +110,10 @@ exports.getOrganisationsClapsSum = async (req, res, next) => {
         $sort: { "claps": -1 }
       }
     ]
-  ).then(clapsCount => {
-    req.backflipRecognize = { status: 200, message: 'Claps count by organisation fetch with success.', data: clapsCount };
+  ).then(async clapsCount => {
+    var clapsCountPopulated = await Organisation.populate(clapsCount, {path: "_id", select: "_id tag name"});
+
+    req.backflipRecognize = { status: 200, message: 'Claps count by organisation fetch with success.', data: clapsCountPopulated };
     return next();
   }).catch(err => { return next(err) });
 }
