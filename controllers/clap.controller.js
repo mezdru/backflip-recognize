@@ -49,7 +49,7 @@ exports.createSingleClap = async (req, res, next) => {
   clap.save()
     .then(clapSaved => {
       let dateB = new Date();
-      console.log( '[CLAP WRITE] - time : ' + (dateB.getTime()-dateA.getTime()) + ' ms' );
+      console.log('[CLAP WRITE] - time : ' + (dateB.getTime() - dateA.getTime()) + ' ms');
       req.backflipRecognize = { message: 'Clap saved with success', status: 200, data: clapSaved };
       return next();
     }).catch(err => {
@@ -64,8 +64,8 @@ exports.createSingleClap = async (req, res, next) => {
 exports.getRecordHashtagsClapsSum = async (req, res, next) => {
   let record = await Record.findOne({ _id: req.params.id }).lean();
 
-  if(!record) {
-    req.backflipRecognize = {status: 404, message: 'Record not found.'};
+  if (!record) {
+    req.backflipRecognize = { status: 404, message: 'Record not found.' };
     return next();
   }
   let dateA = new Date();
@@ -82,15 +82,35 @@ exports.getRecordHashtagsClapsSum = async (req, res, next) => {
       {
         $group: {
           _id: "$hashtag",
-          claps: { $sum: "$given"},
+          claps: { $sum: "$given" },
           clapObjectCount: { $sum: 1 }
         }
       }
     ]
   ).then(clapsCount => {
     let dateB = new Date();
-    console.log( '[CLAP AGGREGATION] - time : ' + (dateB.getTime()-dateA.getTime()) + ' ms' );
-    req.backflipRecognize = {status: 200, message: 'Claps count fetch with success.', data: clapsCount, organisation: record.organisation};
+    console.log('[CLAP AGGREGATION] - time : ' + (dateB.getTime() - dateA.getTime()) + ' ms');
+    req.backflipRecognize = { status: 200, message: 'Claps count fetch with success.', data: clapsCount, organisation: record.organisation };
     return next();
-  }).catch(err => {return next(err)});
+  }).catch(err => { return next(err) });
+}
+
+exports.getOrganisationsClapsSum = async (req, res, next) => {
+  Clap.aggregate(
+    [
+      {
+        $group: {
+          _id: "$organisation",
+          claps: { $sum: "$given" },
+          clapObjectCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { "claps": -1 }
+      }
+    ]
+  ).then(clapsCount => {
+    req.backflipRecognize = { status: 200, message: 'Claps count by organisation fetch with success.', data: clapsCount };
+    return next();
+  }).catch(err => { return next(err) });
 }

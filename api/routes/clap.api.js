@@ -26,6 +26,14 @@ router.get(
 )
 
 router.get(
+  '/organisations',
+  passport.authenticate('bearer', {session: false}),
+  ResponseAuthorization.superadminOnly,
+  ClapController.getOrganisationsClapsSum,
+  ResponseAuthorization.resForSuperadminOnly
+)
+
+router.get(
   '/:id', 
   passport.authenticate('bearer', {session: false}),
   ClapController.getSingleClap,

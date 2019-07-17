@@ -11,6 +11,20 @@ exports.resForUserGrantedOnly = async (req, res, next) => {
   return response403(res);
 }
 
+exports.superadminOnly = async (req, res, next) => {
+  if(req.user.superadmin) return next();
+
+  return response403(res);
+}
+
+exports.resForSuperadminOnly = async (req, res, next) => {
+  var resData = req.backflipRecognize;
+  if(req.user.superadmin)
+    return res.status(resData.status).json({message: resData.message, data: resData.data});
+
+  return response403(res);
+}
+
 exports.resForAllUser = async (req, res, next) => {
   var resData = req.backflipRecognize;
   return res.status(resData.status || 200).json({message: resData.message, data: resData.data})
