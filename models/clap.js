@@ -23,7 +23,6 @@ ClapSchema.methods.algoliaSync = function () {
     [
       {
         $match: {
-          hashtag: this.hashtag,
           recipient: this.recipient,
           organisation: this.organisation
         }
@@ -35,32 +34,14 @@ ClapSchema.methods.algoliaSync = function () {
         }
       }
     ]).then(claps => {
-      try {
-        var currentClap = claps.find(clap => clap._id.equals(this.hashtag));
-        // pull algolia object
-        index.getObject(this.recipient, ['hashtags'], (err, algoliaObject) => {
-          if (err) {
-            console.log('Algolia ObjectID (' + this.recipient + ') not found');
-            return;
-          }
-          var indexOfWing = algoliaObject.hashtags.findIndex(hashtag => JSON.stringify(hashtag._id) === JSON.stringify(this.hashtag));
 
-          if ((indexOfWing !== -1) && algoliaObject.hashtags[indexOfWing]) {
-            algoliaObject.hashtags[indexOfWing].claps = currentClap.claps;
+      var hashtags_claps = claps.map(elt => {return {hashtag: elt._id, claps: elt.claps}} );
 
-            // push update
-            index.partialUpdateObject(algoliaObject, (err, algoliaObjectUpdated) => {
-              if (err) console.log(err);
-              console.log(`Sync ${algoliaObjectUpdated.objectID} (Clap) with Algolia`);
-            });
-          } else {
-            console.log("Algolia Sync: Can't find hashtag links to the Clap counter.");
-          }
+      index.partialUpdateObject({objectID: this.recipient, hashtags_claps: hashtags_claps}, (err, algoliaObjectUpdated) => {
+        if (err) console.log(err);
+        console.log(`Sync ${algoliaObjectUpdated.objectID} (Clap) with Algolia`);
+      });
 
-        });
-      } catch (err) {
-        console.log(err);
-      }
     }).catch(e => console.log(e));
 }
 
