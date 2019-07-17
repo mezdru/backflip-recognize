@@ -39,7 +39,10 @@ ClapSchema.methods.algoliaSync = function () {
         var currentClap = claps.find(clap => clap._id.equals(this.hashtag));
         // pull algolia object
         index.getObject(this.recipient, ['hashtags'], (err, algoliaObject) => {
-          if (err) throw err;
+          if (err) {
+            console.log('Algolia ObjectID (' + this.recipient + ') not found');
+            return;
+          }
           var indexOfWing = algoliaObject.hashtags.findIndex(hashtag => JSON.stringify(hashtag._id) === JSON.stringify(this.hashtag));
 
           if ((indexOfWing !== -1) && algoliaObject.hashtags[indexOfWing]) {
@@ -47,7 +50,7 @@ ClapSchema.methods.algoliaSync = function () {
 
             // push update
             index.partialUpdateObject(algoliaObject, (err, algoliaObjectUpdated) => {
-              if (err) throw err;
+              if (err) console.log(err);
               console.log(`Sync ${algoliaObjectUpdated.objectID} (Clap) with Algolia`);
             });
           } else {
