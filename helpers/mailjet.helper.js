@@ -7,7 +7,6 @@ const defaultEmitter = 'bonjour@wingzy.com';
 const defaultEmitterName = 'Wingzy';
 
 exports.sendRecognizeEmail = (recipientEmail, wingsList, organisation, ctaUrl, recipientLocale) => {
-  console.log(recipientEmail)
   return mailjet
   .post("send")
   .request({

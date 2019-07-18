@@ -40,11 +40,13 @@ var Agenda = (function () {
         }
       });
 
+      console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
+
       MailjetHelper.sendRecognizeEmail(
         recipientUser.loginEmail,
         hashtagsString,
         initialClap.organisation,
-        (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
+        (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.recipient.tag, null, locale)).getUrl(),
         locale
       ).then().catch(e => console.log(e));
 
