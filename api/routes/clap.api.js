@@ -54,6 +54,7 @@ router.post(
   AuthorizationOrganisation,
   ClapValidation,
   ClapController.createSingleClap,
+  ClapController.scheduleRecognizeEmail,
   ResponseAuthorization.resForAllUser
 )
 
