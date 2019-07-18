@@ -1,16 +1,8 @@
 var AgendaPack = require('agenda');
 var User = require('./user');
-var Record = require('./record');
 var MailjetHelper = require('../helpers/mailjet.helper');
 var UrlHelper = require('../helpers/url.helper');
-var Organisation = require('./organisation');
 var Clap = require('./clap');
-
-let asyncForEach = async (array, callback) => {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-}
 
 var Agenda = (function () {
   this.agenda = new AgendaPack({ db: { address: process.env.MONGODB_URI, collection: 'jobs' } });
@@ -24,31 +16,24 @@ var Agenda = (function () {
      * @description Send email : notify user after claps received
      */
     this.agenda.define('sendRecognizeEmail', async (job, done) => {
-      let data = job.attrs.data;
 
-      let initialClap = await  Clap.findOne({_id: data._id})
+      let initialClap = await  Clap.findOne({_id: job.attrs.data._id})
                         .populate('recipient', '_id tag name')
                         .populate('giver', '_id tag name')
                         .populate('organisation', '_id tag name cover logo')
                         .populate('hashtag', '_id tag name name_translated');
 
-      let recipientUser = await User.findOne({'orgsAndRecords.record': data.recipient});
+      let recipientUser = await User.findOne({'orgsAndRecords.record': job.attrs.data.recipient});
       let locale = recipientUser ? (recipientUser.locale || 'en') : 'en';
-      let iHashtag = initialClap.hashtag;
-      let iHashtagName = (iHashtag ? ((iHashtag.name_translated ? (iHashtag.name_translated[locale] || iHashtag.name_translated['en']) || iHashtag.name || iHashtag.tag : iHashtag.name || iHashtag.tag)) : "")
-      let clapSet = new Set();
+      let iHashtagName = initialClap.hashtag.getTranslatedName(locale);
+      let clapSet = new Set([iHashtagName]);
       let hashtagsString = iHashtagName;
 
-      clapSet.add(iHashtagName);
+      let newClaps = await Clap.find({recipient: job.attrs.data.recipient, created: {$gt: initialClap.created}})
+                      .populate('hashtag', '_id tag name name_translated');
 
-      let newClaps = await Clap.find({recipient: data.recipient, created: {$gt: initialClap.created}})
-                          .populate('hashtag', '_id tag name name_translated');
-
-      console.log('new claps: ', newClaps.length);
-
-      await asyncForEach(newClaps, async (newClap) => {
-        let hashtag = newClap.hashtag;
-        let hashtagName = (hashtag ? ((hashtag.name_translated ? (hashtag.name_translated[locale] || hashtag.name_translated['en']) || hashtag.name || hashtag.tag : hashtag.name || hashtag.tag)) : "");
+      newClaps.forEach(newClap => {
+        let hashtagName = newClap.hashtag.getTranslatedName(locale);
         if(!clapSet.has(hashtagName)) {
           hashtagsString += ", " + hashtagName;
           clapSet.add(hashtagName);
@@ -63,9 +48,7 @@ var Agenda = (function () {
         locale
       ).then().catch(e => console.log(e));
 
-      this.removeJob(job).then(()=> {
-        return done();
-      });
+      this.removeJob(job).then(()=> done());
 
     });
 
