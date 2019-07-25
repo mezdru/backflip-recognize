@@ -26,6 +26,13 @@ router.get(
 )
 
 router.get(
+  '/record/:id',
+  passport.authenticate('bearer', {session: false}),
+  ClapController.getClapHistory,
+  ResponseAuthorization.resForUserGrantedOnly
+)
+
+router.get(
   '/organisations',
   passport.authenticate('bearer', {session: false}),
   ResponseAuthorization.superadminOnly,
