@@ -1,5 +1,8 @@
 exports.resForUserGrantedOnly = async (req, res, next) => {
   var resData = req.backflipRecognize;
+  
+  if(resData.forceResponse)
+    return res.status(resData.status).json({message: resData.message, data: resData.data});
 
   if(req.user.superadmin || (resData.owner && resData.owner.equals(req.user._id)))
     return res.status(resData.status).json({message: resData.message, data: resData.data});
