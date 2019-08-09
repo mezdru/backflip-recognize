@@ -125,3 +125,26 @@ exports.scheduleRecognizeEmail = async (req, res, next) => {
   }
   return next();
 }
+
+exports.getClapHistory = async (req, res, next) => {
+
+  var recipient = await Record.findOne({_id: req.params.id});
+  if(!recipient) {
+    req.backflipRecognize = {status: 404, message: 'The record id provided doesn\'t exist', forceResponse: true};
+    return next();
+  }
+
+  Clap.find({recipient: req.params.id})
+  .populate('giver', '_id tag name picture')
+  .populate('hashtag', '_id tag name name_translated picture')
+  .sort({created: -1})
+  .then(claps => {
+    if(claps.length > 0) {
+      req.backflipRecognize = { status: 200, message: 'Claps history fetch with success.', data: claps, organisation: recipient.organisation };
+    } else {
+      req.backflipRecognize = {status: 404, message: 'Claps not found for this profile.', organisation: recipient.organisation};
+    }
+
+    return next();
+  }).catch(err => { return next(err) });
+}
