@@ -61,7 +61,6 @@ var Agenda = (function () {
       if (process.env.NODE_ENV === 'production' || true) {
         await agenda.jobs({name: 'sendRecognizeEmail', 'data.recipient': clap.recipient, nextRunAt: {$gte: (new Date())}})
         .then(async concurrentJobs => {
-          console.log(concurrentJobs.length)
           if( !concurrentJobs || concurrentJobs.length === 0) {
             let job = this.agenda.create('sendRecognizeEmail', clap);
             job.schedule('in 15 minutes');
