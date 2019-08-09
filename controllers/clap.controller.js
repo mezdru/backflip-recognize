@@ -118,6 +118,14 @@ exports.getOrganisationsClapsSum = async (req, res, next) => {
   }).catch(err => { return next(err) });
 }
 
+exports.scheduleRecognizeEmail = async (req, res, next) => {
+  if(req.backflipRecognize.status === 200) {
+    var Agenda = require('../models/agendaScheduler');
+    Agenda.scheduleNotifyUserRecognized(req.backflipRecognize.data);
+  }
+  return next();
+}
+
 exports.getClapHistory = async (req, res, next) => {
 
   var recipient = await Record.findOne({_id: req.params.id});

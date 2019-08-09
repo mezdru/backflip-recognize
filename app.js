@@ -42,6 +42,8 @@ if (app.get('env') === 'production') {
   });
 }
 
+var Agenda = require('./models/agendaScheduler');
+
 // Generic logging
 var morgan = require('morgan');
 morgan.token('fullurl', function getFullUrl(req) {

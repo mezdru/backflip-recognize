@@ -13,6 +13,26 @@ let userSchema = mongoose.Schema({
       welcomed: { type: Boolean, default: false }
     }
   ],
+  google: { // Google subdocument will be deprecated. We are now using GoogleUser object.
+    id: {type: String, index: true, unique: true, sparse: true},
+    //@todo rename to primaryEmail
+    email: {type: String, index: true, unique: true, sparse: true},
+    normalized: {type: String, index: true, unique: true, sparse: true},
+    hd: String,
+    tokens: {
+      id_token: String,
+      refresh_token: String,
+      access_token: String
+    },
+  },
+  email: {
+    value: {type: String, index: true, unique: true, sparse: true},
+    normalized: {type: String, index: true, unique: true, sparse: true},
+    hash: {type: String, index: true, unique: true, sparse: true},
+    token: String,
+    generated: Date,
+    validated: {type: Boolean, default: false}
+  },
   last_login: { type: Date },
   last_action: {type: Date},
   created: { type: Date, default: Date.now },
@@ -20,6 +40,10 @@ let userSchema = mongoose.Schema({
   superadmin: Boolean,
   hashedPassword: {type: String, select: false},
   salt: {type: String, select: false},
+});
+
+userSchema.virtual('loginEmail').get(function() {
+  return this.google.email || this.email.value;
 });
 
 userSchema.methods.belongsToOrganisation = function(organisationId) {
