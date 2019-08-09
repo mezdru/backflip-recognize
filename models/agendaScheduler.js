@@ -64,7 +64,7 @@ var Agenda = (function () {
           console.log(concurrentJobs.length)
           if( !concurrentJobs || concurrentJobs.length === 0) {
             let job = this.agenda.create('sendRecognizeEmail', clap);
-            job.schedule('in 15 seconds');
+            job.schedule('in 15 minutes');
             await job.save();
           }
         });
