@@ -6,7 +6,7 @@ const defaultLogoUrl = 'https://wingzy.com/wingzy.png';
 const defaultEmitter = 'bonjour@wingzy.com';
 const defaultEmitterName = 'Wingzy';
 
-exports.sendRecognizeEmail = (recipientEmail, wingsList, organisation, ctaUrl, recipientLocale) => {
+exports.sendRecognizeEmail = (recipientEmail, wingsList, organisation, ctaUrl, giverName, recipientLocale) => {
   return mailjet
   .post("send")
   .request({
@@ -23,7 +23,8 @@ exports.sendRecognizeEmail = (recipientEmail, wingsList, organisation, ctaUrl, r
       "orgLogoUrl": (organisation && organisation.logo ? organisation.logo.url || defaultLogoUrl : defaultLogoUrl),
       "ctaUrl": ctaUrl,
       "orgName": organisation ? organisation.name : null,
-      "orgUrl": (new UrlHelper(organisation.tag, null, null, recipientLocale)).getUrl()
+      "orgUrl": (new UrlHelper(organisation.tag, null, null, recipientLocale)).getUrl(),
+      "giverName": giverName
     }
   });
 }
