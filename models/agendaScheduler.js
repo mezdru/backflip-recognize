@@ -46,7 +46,8 @@ var Agenda = (function () {
         recipientUser.loginEmail,
         hashtagsString,
         initialClap.organisation,
-        (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.recipient.tag, null, locale)).getUrl(),
+        (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
+        initialClap.giver.name,
         locale
       ).then().catch(e => console.log(e));
 
