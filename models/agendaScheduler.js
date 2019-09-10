@@ -40,7 +40,11 @@ var Agenda = (function () {
         }
       });
 
-      console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
+      if(recipientUser) {
+        console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
+      } else {
+        console.log('AGENDA: CLAP: Notify error, no recipient user for this Clap: ', initialClap);
+      }
 
       MailjetHelper.sendRecognizeEmail(
         recipientUser.loginEmail,
