@@ -35,7 +35,7 @@ var recordSchema = mongoose.Schema({
 });
 
 recordSchema.methods.getTranslatedName = function(locale) {
-  return (this ? ((this.name_translated ? (this.name_translated[locale] || this.name_translated['en']) || this.name || this.tag : this.name || this.tag)) : "");
+  return (this ? (this.name_translated ? (this.name_translated[locale] || this.name_translated['en']) || this.name || this.tag : this.name || this.tag) : "");
 }
 
 var Record = mongoose.model('Record', recordSchema);

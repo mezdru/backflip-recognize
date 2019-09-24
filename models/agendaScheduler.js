@@ -42,18 +42,17 @@ var Agenda = (function () {
 
       if(recipientUser) {
         console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
+        MailjetHelper.sendRecognizeEmail(
+          recipientUser.loginEmail,
+          hashtagsString,
+          initialClap.organisation,
+          (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
+          initialClap.giver.name,
+          locale
+        ).then().catch(e => console.log(e));
       } else {
         console.log('AGENDA: CLAP: Notify error, no recipient user for this Clap: ', initialClap);
       }
-
-      MailjetHelper.sendRecognizeEmail(
-        recipientUser.loginEmail,
-        hashtagsString,
-        initialClap.organisation,
-        (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
-        initialClap.giver.name,
-        locale
-      ).then().catch(e => console.log(e));
 
       this.removeJob(job).then(()=> done());
 
