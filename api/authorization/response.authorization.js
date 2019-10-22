@@ -14,6 +14,11 @@ exports.resForUserGrantedOnly = async (req, res, next) => {
   return response403(res);
 }
 
+exports.clientOnly = async (req, res, next) => {
+  if(req.user.clientId && req.user.scope.find(scopeElt => scopeElt === req.backflipRecognize.resource.model)) return next();
+  return response403(res);
+}
+
 exports.superadminOnly = async (req, res, next) => {
   if(req.user.superadmin) return next();
 
