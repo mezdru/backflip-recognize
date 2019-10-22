@@ -65,4 +65,12 @@ router.post(
   ResponseAuthorization.resForAllUser
 )
 
+router.put(
+  '/notify/merge',
+  passport.authenticate('bearer', {session: false}),
+  ResponseAuthorization.clientOnly,
+  ClapController.handleMergeRecord,
+  ResponseAuthorization.resForAllUser
+)
+
 module.exports = router;

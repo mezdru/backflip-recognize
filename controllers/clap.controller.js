@@ -148,3 +148,30 @@ exports.getClapHistory = async (req, res, next) => {
     return next();
   }).catch(err => { return next(err) });
 }
+
+exports.handleMergeRecord = async (req, res, next) => {
+  let recordFrom = await Record.findOne({_id: req.body.recordIdFrom});
+  let recordTo = await Record.findOne({_id: req.body.recordIdTo});
+
+  if(!recordFrom || ! recordTo) {
+    req.backflipRecognize = {message: "Could not find records", status: 422, data: null};
+    return next();
+  }
+
+  let clapsToUpdate = await Clap.find({hashtag: recordFrom._id});
+
+  await asyncForEach(clapsToUpdate, async (clapToUpdate) => {
+    clapToUpdate.hashtag = recordTo._id;
+    await clapToUpdate.save();
+  });
+
+  req.backflipRecognize = {message: 'Claps updated with success.', status: 200, data: {clapsUpdated: clapsToUpdate}};
+  return next();
+}
+
+//@todo should be in a general utils helper
+let asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
