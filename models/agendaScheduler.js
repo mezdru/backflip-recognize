@@ -17,60 +17,64 @@ var Agenda = (function () {
      */
     this.agenda.define('sendRecognizeEmail', async (job, done) => {
 
-      let initialClap = await  Clap.findOne({_id: job.attrs.data._id})
-                        .populate('recipient', '_id tag name')
-                        .populate('giver', '_id tag name')
-                        .populate('organisation', '_id tag name cover logo')
-                        .populate('hashtag', '_id tag name name_translated');
+      try {
+        let initialClap = await Clap.findOne({ _id: job.attrs.data._id })
+          .populate('recipient', '_id tag name')
+          .populate('giver', '_id tag name')
+          .populate('organisation', '_id tag name cover logo')
+          .populate('hashtag', '_id tag name name_translated');
 
-      let recipientUser = await User.findOne({'orgsAndRecords.record': job.attrs.data.recipient});
-      let locale = recipientUser ? (recipientUser.locale || 'en') : 'en';
-      let iHashtagName = initialClap.hashtag.getTranslatedName(locale);
-      let clapSet = new Set([iHashtagName]);
-      let hashtagsString = iHashtagName;
+        let recipientUser = await User.findOne({ 'orgsAndRecords.record': job.attrs.data.recipient });
+        let locale = (recipientUser && recipientUser.locale) ? recipientUser.locale : 'en';
+        let iHashtagName = initialClap.hashtag.getTranslatedName(locale);
+        let clapSet = new Set([iHashtagName]);
+        let hashtagsString = iHashtagName;
 
-      let newClaps = await Clap.find({recipient: job.attrs.data.recipient, created: {$gt: initialClap.created}})
-                      .populate('hashtag', '_id tag name name_translated');
+        let newClaps = await Clap.find({ recipient: job.attrs.data.recipient, created: { $gt: initialClap.created } })
+          .populate('hashtag', '_id tag name name_translated');
 
-      newClaps.forEach(newClap => {
-        let hashtagName = newClap.hashtag.getTranslatedName(locale);
-        if(!clapSet.has(hashtagName)) {
-          hashtagsString += ", " + hashtagName;
-          clapSet.add(hashtagName);
+        newClaps.forEach(newClap => {
+          let hashtagName = newClap.hashtag.getTranslatedName(locale);
+          if (!clapSet.has(hashtagName)) {
+            hashtagsString += ", " + hashtagName;
+            clapSet.add(hashtagName);
+          }
+        });
+
+        if (recipientUser) {
+          console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
+          MailjetHelper.sendRecognizeEmail(
+            recipientUser.loginEmail,
+            hashtagsString,
+            initialClap.organisation,
+            (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
+            initialClap.giver.name,
+            locale
+          ).then().catch(e => console.log(e));
+        } else {
+          console.log('AGENDA: CLAP: Notify error, no recipient user for this Clap: ', initialClap);
         }
-      });
 
-      if(recipientUser) {
-        console.log('AGENDA: CLAP: Notify ' + recipientUser.loginEmail);
-        MailjetHelper.sendRecognizeEmail(
-          recipientUser.loginEmail,
-          hashtagsString,
-          initialClap.organisation,
-          (new UrlHelper(initialClap.organisation.tag, 'profile/' + initialClap.giver.tag, null, locale)).getUrl(),
-          initialClap.giver.name,
-          locale
-        ).then().catch(e => console.log(e));
-      } else {
-        console.log('AGENDA: CLAP: Notify error, no recipient user for this Clap: ', initialClap);
+        this.removeJob(job).then(() => done());
+      } catch (e) {
+        console.log(e);
+        this.removeJob(job).then(() => done());
       }
-
-      this.removeJob(job).then(()=> done());
-
     });
 
     /**
      * @description Schedule Notify User by Email after claps received
      */
-    this.scheduleNotifyUserRecognized = async function(clap) {
+    this.scheduleNotifyUserRecognized = async function (clap) {
       if (process.env.NODE_ENV === 'production' || true) {
-        await agenda.jobs({name: 'sendRecognizeEmail', 'data.recipient': clap.recipient, nextRunAt: {$gte: (new Date())}})
-        .then(async concurrentJobs => {
-          if( !concurrentJobs || concurrentJobs.length === 0) {
-            let job = this.agenda.create('sendRecognizeEmail', clap);
-            job.schedule('in 15 minutes');
-            await job.save();
-          }
-        });
+        await agenda.jobs({ name: 'sendRecognizeEmail', 'data.recipient': clap.recipient, nextRunAt: { $gte: (new Date()) } })
+          .then(async concurrentJobs => {
+            if (!concurrentJobs || concurrentJobs.length === 0) {
+              let job = this.agenda.create('sendRecognizeEmail', clap);
+              job.schedule('in 15 minutes');
+              await job.save();
+            }
+          });
       }
 
     }

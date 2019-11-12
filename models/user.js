@@ -39,6 +39,7 @@ let userSchema = mongoose.Schema({
   updated: { type: Date, default: Date.now },
   superadmin: Boolean,
   hashedPassword: {type: String, select: false},
+  locale: {type: String},
   salt: {type: String, select: false},
 });
 
