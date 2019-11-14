@@ -1,3 +1,15 @@
+exports.resAllowedToReadOrganisationOnly = async (req, res, next) => {
+  var resData = req.backflipRecognize;
+
+  if(
+    (req.organisation.public) || 
+    (req.user && req.user.superadmin) ||
+    (req.user && req.user.belongsToOrganisation(req.organisation._id))
+  ) return res.status(resData.status).json({message: resData.message, data: resData.data});
+
+  return response403(res);
+}
+
 exports.resForUserGrantedOnly = async (req, res, next) => {
   var resData = req.backflipRecognize;
   
