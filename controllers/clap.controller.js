@@ -62,6 +62,41 @@ exports.createSingleClap = async (req, res, next) => {
     });
 }
 
+exports.getRecordHashtagsClapsSum2 = async (req, res, next) => {
+  let record = await Record.findOne({ _id: req.params.id, organisation: req.organisation._id }).lean();
+
+  if (!record) {
+    req.backflipRecognize = { status: 404, message: 'Record not found.' };
+    return next();
+  }
+  let dateA = new Date();
+
+  Clap.aggregate(
+    [
+      {
+        $match: {
+          hashtag: { $in: record.hashtags },
+          recipient: record._id,
+          organisation: req.organisation._id
+        }
+      },
+      {
+        $group: {
+          _id: "$hashtag",
+          claps: { $sum: "$given" },
+          clapObjectCount: { $sum: 1 }
+        }
+      }
+    ]
+  ).then(clapsCount => {
+    let dateB = new Date();
+    console.log('[CLAP AGGREGATION] - time : ' + (dateB.getTime() - dateA.getTime()) + ' ms');
+    req.backflipRecognize = { status: 200, message: 'Claps count fetch with success.', data: clapsCount };
+    return next();
+  }).catch(err => { return next(err) });
+}
+
+// obsolete
 exports.getRecordHashtagsClapsSum = async (req, res, next) => {
   let record = await Record.findOne({ _id: req.params.id }).lean();
 
@@ -143,6 +178,7 @@ exports.getClapHistory2 = async (req, res, next) => {
   }).catch(err => { return next(err) });
 }
 
+// obsolete
 exports.getClapHistory = async (req, res, next) => {
 
   var recipient = await Record.findOne({_id: req.params.id});
