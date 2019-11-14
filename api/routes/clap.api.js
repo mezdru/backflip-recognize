@@ -18,6 +18,7 @@ router.use((req, res, next) => {
   next();
 });
 
+// obsolete
 router.get(
   '/record/:id/count',
   passport.authenticate('bearer', {session: false}),
@@ -26,6 +27,22 @@ router.get(
 )
 
 let Organisation = require('../../models/organisation');
+
+router.get(
+  '/organisation/:orgId/record/:id/count',
+  async (req, res, next) => {
+    req.organisation = await Organisation.findOne({_id: req.params.orgId}).catch(e => null);
+    if(req.organisation && req.organisation.public) {
+      return next();
+    } else {
+      return passport.authenticate('bearer', {session: false})(req, res, next);
+    }
+  },
+  ClapController.getRecordHashtagsClapsSum2,
+  ResponseAuthorization.resAllowedToReadOrganisationOnly
+)
+
+
 router.get(
   '/organisation/:orgId/record/:id',
   async (req, res, next) => {
@@ -40,7 +57,7 @@ router.get(
   ResponseAuthorization.resAllowedToReadOrganisationOnly
 );
 
-
+// obsolete
 router.get(
   '/record/:id',
   passport.authenticate('bearer', {session: false}),
