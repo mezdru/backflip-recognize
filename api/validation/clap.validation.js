@@ -12,8 +12,8 @@ router.use(async (req, res, next) => {
 
   if( giver && 
       recipient && 
-      recipient.hashtags.find(hashtag => hashtag.equals(req.body.clap.hashtag) && 
-      req.body.clap.given >= 0) &&
+      // recipient.hashtags.find(hashtag => hashtag.equals(req.body.clap.hashtag)) && 
+      req.body.clap.given > 0 &&
       req.user.orgsAndRecords.find(oar => (oar.record && oar.record.equals(giver._id)) ))
     return next();
 
