@@ -1,6 +1,7 @@
 var Clap = require('../models/clap');
 var Record = require('../models/record');
 var Organisation = require('../models/organisation');
+var KeenHelper = require('../helpers/keen_helper');
 
 exports.getClaps = async (req, res, next) => {
   Clap.find({ ...req.query })
@@ -45,12 +46,18 @@ exports.createSingleClap = async (req, res, next) => {
 
   let clap = new Clap(req.body.clap);
   clap.owner = req.user._id;
-  let dateA = new Date();
 
   clap.save()
     .then(clapSaved => {
-      let dateB = new Date();
-      console.log('[CLAP WRITE] - time : ' + (dateB.getTime() - dateA.getTime()) + ' ms');
+
+      KeenHelper.recordEvent('clap', {
+        userEmitter: clap.owner,
+        recordEmitter: clap.giver,
+        hashtag: clap.hashtag,
+        recordRecipient: clap.recipient,
+        given: clap.given
+      }, req.organisation._id);
+
       req.backflipRecognize = { message: 'Clap saved with success', status: 200, data: clapSaved };
       return next();
     }).catch(err => {
